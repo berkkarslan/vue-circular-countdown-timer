@@ -8,7 +8,7 @@ export default {
 </script>
 
 <template>
-  <vue-countdown></vue-countdown>
+  <vue-countdown :setTime="30" :color="'#F7958E'"/>
 </template>
 
 <style scoped>
