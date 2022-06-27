@@ -5,23 +5,31 @@
         <g transform="translate(110,110)">
           <circle r="100" class="e-c-base" />
           <g transform="rotate(-90)">
-            <circle r="100" class="e-c-progress" :style="{'stroke': color}" />
+            <circle r="100" class="e-c-progress" :style="{ stroke: color }" />
             <g id="e-pointer">
-              <circle cx="100" cy="0" r="8" class="e-c-pointer" :style="{'stroke': color}" />
+              <circle
+                cx="100"
+                cy="0"
+                r="8"
+                class="e-c-pointer"
+                :style="{ stroke: color }"
+              />
             </g>
           </g>
         </g>
       </svg>
     </div>
     <div class="controlls">
-      <div class="display-remain-time" :style="{'color': color}" >{{displayOutput}}</div>
+      <div class="display-remain-time" :style="{ color: color }">
+        {{ displayOutput }}
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-
 export default {
+  name: 'VueCountDown',
   data () {
     return {
       progressBar: document.querySelector('.e-c-progress'),
@@ -39,33 +47,41 @@ export default {
   },
   props: {
     setTime: { type: Number, required: false, default: 30 },
-    color: { type: String, required: false, default: '#32beeb' }
+    color: { type: String, required: false, default: '#32beeb' },
+    start: { type: Boolean, required: false, default: true }
   },
   methods: {
     update (value, timePercent) {
-      var offset = -this.length - this.length * value / (timePercent)
+      var offset = -this.length - (this.length * value) / timePercent
       document.querySelector('.e-c-progress').style.strokeDashoffset = offset
-      this.pointer.style.transform = `rotate(${360 * value / (timePercent)}deg)`
+      this.pointer.style.transform = `rotate(${
+        (360 * value) / timePercent
+      }deg)`
     },
     changeWholeTime (seconds) {
-      if ((this.wholeTime + seconds) > 0) {
+      if (this.wholeTime + seconds > 0) {
         this.wholeTime += seconds
         this.update(this.wholeTime, this.wholeTime)
       }
     },
-    timer (seconds) { // counts time, takes seconds
-      let remainTime = Date.now() + (seconds * 1000)
+    timer (seconds) {
+      // counts time, takes seconds
+      let remainTime = Date.now() + seconds * 1000
       this.displayTimeLeft(seconds)
-      this.intervalTimer = setInterval(function () {
-        this.timeLeft = Math.round((remainTime - Date.now()) / 1000)
-        if (this.timeLeft < 0) {
-          clearInterval(this.intervalTimer)
-          this.isStarted = false
-          this.displayTimeLeft(this.wholeTime)
-          return
-        }
-        this.displayTimeLeft(this.timeLeft)
-      }.bind(this), 1000)
+      this.intervalTimer = setInterval(
+        function () {
+          this.timeLeft = Math.round((remainTime - Date.now()) / 1000)
+          if (this.timeLeft < 0) {
+            clearInterval(this.intervalTimer)
+            this.isStarted = false
+            this.displayTimeLeft(this.wholeTime)
+            this.$emit('done')
+            return
+          }
+          this.displayTimeLeft(this.timeLeft)
+        }.bind(this),
+        1000
+      )
     },
     pauseTimer (event) {
       if (this.isStarted === false) {
@@ -79,23 +95,28 @@ export default {
         this.isPaused = !this.isPaused
       }
     },
-    displayTimeLeft (timeLeft) { // displays time on the input
+    displayTimeLeft (timeLeft) {
+      // displays time on the input
       let minutes = Math.floor(timeLeft / 60)
       let seconds = timeLeft % 60
-      let displayString = `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`
+      let displayString = `${minutes < 10 ? '0' : ''}${minutes}:${
+        seconds < 10 ? '0' : ''
+      }${seconds}`
       this.displayOutput = displayString
       this.update(timeLeft, this.wholeTime)
     }
   },
   mounted () {
+    this.$emit('mounted')
     document.querySelector('.e-c-progress').style.strokeDasharray = this.length
     this.pointer = document.getElementById('e-pointer')
     this.update(this.wholeTime, this.wholeTime) // refreshes progress bar
     this.displayTimeLeft(this.wholeTime)
-    this.pauseTimer()
+    if (this.start) {
+      this.pauseTimer()
+    }
   }
 }
-
 </script>
 
 <style>
